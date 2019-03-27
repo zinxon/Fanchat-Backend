@@ -2,6 +2,7 @@ from requests_html import HTMLSession
 from opencc import OpenCC
 import sys
 
+
 def getStockInfo(stock):
     cc = OpenCC('s2t')
     stockCode = stock.split('.')[0]
@@ -21,20 +22,22 @@ def getStockInfo(stock):
     # print(price.text)
     # print(cc.convert(stockQuan.text))
     for new in news:
-        print(new.text,new.links)
+        print(new.text, new.links)
     stock_dict = {'stock_name': cc.convert(name.text), 'stock_code': s,
-                  'stock_price': price.text, 'stock_quan': cc.convert(stockQuan.text),'news':news}
+                  'stock_price': price.text, 'stock_quan': cc.convert(stockQuan.text), 'news': news}
     return stock_dict
 
 
 def main(stock):
     stock_dict = getStockInfo(stock)
-    print("{0} ({1})".format(stock_dict['stock_name'], stock_dict['stock_code']))
+    print("{0} ({1})".format(
+        stock_dict['stock_name'], stock_dict['stock_code']))
     print(stock_dict['stock_price'])
     print(stock_dict['stock_quan'])
     # print(stock_dict)
 
+
 if __name__ == '__main__':
     stock = sys.argv[1]
     main(stock)
-    print('This is in stock.py: ',stock)
+    print('This is in stock.py: ', stock)

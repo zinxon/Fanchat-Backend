@@ -2,21 +2,21 @@
 
 from flask import Flask, request, jsonify, render_template, make_response
 from requests_html import HTMLSession
-from selenium import webdriver
-from opencc import OpenCC
-from threading import Thread
-import multiprocessing as mp
 from stock import getStockInfo
 from stockPrediction_1 import predictStock
 from subprocess import check_output
-from opencc import OpenCC
 import os
 import dialogflow
 import json
+# from selenium import webdriver
+# from opencc import OpenCC
+# from threading import Thread
+# import multiprocessing as mp
+# from opencc import OpenCC
 
 app = Flask(__name__)
 log = app.logger
-cc = OpenCC('s2t')
+# cc = OpenCC('s2t')
 
 
 @app.route('/', methods=['GET'])
