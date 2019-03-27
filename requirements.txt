@@ -3,7 +3,7 @@ opencc_python_reimplemented==0.1.4
 Flask==1.0.2
 requests==2.21.0
 selenium==3.12.0
-requests_html==0.9.0
+requests_html==0.6.6
 pandas_datareader==0.7.0
 pandas==0.23.4
 firebase_admin==2.16.0
