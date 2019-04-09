@@ -1,5 +1,6 @@
 from pandas_datareader import data, wb
 from datetime import datetime
+import time
 import numpy as np
 import pandas as pd
 import plotly.plotly as py
@@ -7,10 +8,34 @@ import plotly.io as pio
 from requests_html import HTMLSession
 from sklearn.linear_model import LinearRegression
 from IPython.display import Image
+import firebase_admin
+from firebase_admin import credentials, firestore
+import threading
+
+
+cred = credentials.Certificate(
+    "fanchat-firebase-adminsdk-hbuwz-9bbdc73723.json")
+default_app = firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 moving_average_gruop = [7, 20, 50]
 moving_average_gruop_name = ['Rolling_mean_' +
                              str(i) for i in moving_average_gruop]
+
+
+def getUrlFromDB(stockCode):
+    url = ""
+    doc_ref = db.collection('stockPrediction').document(stockCode)
+    try:
+        doc = doc_ref.get().to_dict()
+        url = doc['url']
+        # print(u'{}'.format(doc.to_dict()))
+        print(url)
+        print('{0} 的url已存在Firebase'.format(stockCode))
+    except Exception:
+        print('現在為你生成{}圖表'.format(stockCode))
+    # path = '/{0}/url'.format(stockCode)
+    return url
 
 
 def getStockInfo(stockCode):
@@ -190,9 +215,25 @@ def processing(df, stockCode):
     return url.resource
 
 
-def predictStock(stockCode):
+def chartProcessing(stockCode):
+    print("Yay! I still got executed, even though my function has already returned!")
     df = getStockInfo(stockCode)
     url = processing(df, stockCode)
+    doc_ref = db.collection('stockPrediction').document(stockCode)
+    doc_ref.set({'url': url})
+    msg = '{0} 的預測url已加到Firebase'.format(stockCode)
+    print(msg)
+
+
+def predictStock(stockCode):
+    start_time = time.time()
+    url = getUrlFromDB(stockCode)
+    t = threading.Thread(target=chartProcessing, args=[stockCode])
+    t.start()
+    if url == "":
+        return url
+    elapsed_time = time.time() - start_time
+    print('time: ', elapsed_time, 's')
     return url
 
 

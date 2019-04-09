@@ -48,7 +48,9 @@ def webhook():
     print(req)
     print("Request:", json.dumps(req, indent=4))
     res = processRequest(req)
-    return make_response(jsonify({'fulfillmentText': res}))
+    payload = make_response(jsonify({'fulfillmentText': res}))
+    print(payload)
+    return payload
 
 
 def processRequest(req):
@@ -74,6 +76,8 @@ def processRequest(req):
         res = get_stock_new(req)
     elif action == 'add_stock':
         res = add_stock(req)
+    elif action == 'get_stock_information':
+        res = get_stock_information(req)
     else:
         res = {}
     print('Action: '+action)
@@ -147,7 +151,16 @@ def get_stock_prediction(req):
     parameters = req['queryResult']['parameters']
     stock = parameters['stock']
     # ma_indes = [7,20,50]
-    res = predictStock(stock)
+    url = predictStock(stock)
+    print("Index: "+url)
+    if url == "":
+        res = '後台正在生成股票預測圖表，請等候\n現在為你生成: ({0}) 圖表\n請再次輸入“[股票名稱]預測“ 以獲得預測圖表'.format(
+            stock)
+    else:
+        res = url + " \n(請點擊網址以開啟{}預測圖表）".format(stock)
+        # res = "<ul><a href='{0}'>{0}</a></ul>".format(url)
+    # res = "https://plot.ly/~zinxon/24 \n(請點擊網址以開啟）"
+    # print(res)
     return res
 
 
@@ -164,6 +177,13 @@ def get_stock_new(req):
     #     '//*[@id="latestQuoteNewsStream-0-Stream"]/ul').text
     # browser.quit()
     return str(stock + "-新聞正在爬取")
+
+
+def get_stock_information(req):
+    parameters = req['queryResult']['parameters']
+    stock = parameters['stock']
+    res = stock
+    return res
 
 
 def compare_stock(req):
