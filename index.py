@@ -2,21 +2,15 @@
 
 from flask import Flask, request, jsonify, render_template, make_response
 from requests_html import HTMLSession
-from stock import getStockInfo
-from stockPrediction_1 import predictStock
+from stockPrediction_linear import predictStock
 from subprocess import check_output
 import os
 import dialogflow
 import json
-# from selenium import webdriver
-# from opencc import OpenCC
-# from threading import Thread
-# import multiprocessing as mp
-# from opencc import OpenCC
+
 
 app = Flask(__name__)
 log = app.logger
-# cc = OpenCC('s2t')
 
 
 @app.route('/', methods=['GET'])
@@ -72,8 +66,6 @@ def processRequest(req):
         res = compare_stock(req)
     elif action == 'get_stock_prediction':
         res = get_stock_prediction(req)
-    elif action == 'get_stock_new':
-        res = get_stock_new(req)
     elif action == 'add_stock':
         res = add_stock(req)
     elif action == 'get_stock_information':
@@ -123,9 +115,6 @@ def get_stock_price(req):
     else:
         number = 1
     print(stock)
-    # out = check_output(['python','stock.py',stock])
-    # out = cc.convert(out.decode("utf-8"))
-    # print(out)
     stock_dict = call_alphavantage_api_stock(stock, stock_original, number)
     res = "{4}股{0} ({1}) 依家 HK${2} 在 {3}".format(
         stock_dict['stock_original'], stock_dict['stock'], stock_dict['stock_value'], stock_dict['time'], stock_dict['stock_number'])
@@ -155,34 +144,22 @@ def get_featured_news(req):
 def get_stock_prediction(req):
     parameters = req['queryResult']['parameters']
     stock = parameters['stock']
+    predict_method = parameters['predict_methods']
     # ma_indes = [7,20,50]
-    url = predictStock(stock)
-    print("Index: "+url)
-    if url == "":
-        res = '後台正在生成股票預測圖表，請等候\n現在為你生成: ({0}) 圖表\n請再次輸入“[股票名稱]預測“ 以獲得預測圖表'.format(
-            stock)
-    else:
-        res = url + " \n(請點擊網址以開啟{}預測圖表）".format(stock)
+    res="testing in prediction"
+    print(predict_method)
+    if(predict_method=='linearRegression'):
+        url = predictStock(stock)
+        print("Index: "+url)
+        if url == "":
+            res = '後台正在生成股票預測圖表，請等候\n現在為你生成: ({0}) 圖表\n請再次輸入“[股票名稱]預測“ 以獲得預測圖表'.format(
+                stock)
+        else:
+            res = url + " \n(請點擊網址以開啟{}預測圖表）".format(stock)
         # res = "<ul><a href='{0}'>{0}</a></ul>".format(url)
     # res = "https://plot.ly/~zinxon/24 \n(請點擊網址以開啟）"
     # print(res)
     return res
-
-
-def get_stock_new(req):
-    parameters = req['queryResult']['parameters']
-    stock = parameters['stock']
-    # stock_dict = {}
-    # new_list = []
-    # browser = webdriver.Chrome()
-    # url = 'https://hk.finance.yahoo.com/quote/{0}/news'.format(stock)
-    # browser.get(url)  # navigate to the page
-    # new_list = []
-    # news = browser.find_element_by_xpath(
-    #     '//*[@id="latestQuoteNewsStream-0-Stream"]/ul').text
-    # browser.quit()
-    return str(stock + "-新聞正在爬取")
-
 
 def get_stock_information(req):
     parameters = req['queryResult']['parameters']
