@@ -220,7 +220,7 @@ def chartProcessing(stockCode):
     df = getStockInfo(stockCode)
     url = processing(df, stockCode)
     doc_ref = db.collection('stockPrediction').document(stockCode)
-    doc_ref.set({'url': url})
+    doc_ref.update({'url': url})
     msg = '{0} 的預測url已加到Firebase'.format(stockCode)
     print(msg)
 

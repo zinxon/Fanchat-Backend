@@ -13,15 +13,13 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import threading
 from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential,load_model
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Dropout
 import tensorflow as tf
 
-cred = credentials.Certificate(
-    "fanchat-firebase-adminsdk-hbuwz-9bbdc73723.json")
-default_app = firebase_admin.initialize_app(cred)
+
 db = firestore.client()
 
 valid_set_size_percentage = 10
@@ -31,11 +29,11 @@ test_set_size_percentage = 10
 def getUrlFromDB(stockCode):
     url = ""
     doc_ref = db.collection('stockPrediction').document(stockCode)
+    print("in getURLfromDB")
     try:
-        doc = doc_ref.get().to_dict()
-        url = doc['url']
-        # print(u'{}'.format(doc.to_dict()))
-        print(url)
+        doc = doc_ref.get()
+        print(u'url-lstm: {}'.format(doc.to_dict()['url-lstm']))
+        url = doc.to_dict()['url-lstm']
         print('{0} 的url已存在Firebase'.format(stockCode))
     except Exception:
         print('現在為你生成{}圖表'.format(stockCode))
@@ -113,49 +111,52 @@ def processing(df, stockCode):
 
     predicted_stock_price = regressor.predict(X_test)
     predicted_stock_price = sc.inverse_transform(predicted_stock_price)
-    regressor.evaluate(X_test,y_test)
+    # regressor.evaluate(X_test, y_test)
 
     real_stock_price = df[['Close']][train_set_size+valid_set_size:]
     real_stock_price = real_stock_price[60:]
 
     date_predict = date[train_set_size+valid_set_size+60:]
 
-    fig = plt.figure(figsize = (18,9))
-    plt.plot(date_predict,real_stock_price, color = 'black', label = '{} Stock Price'.format(stockCode))
-    plt.plot(date_predict,predicted_stock_price, color = 'green', label = 'Predicted {} Stock Price'.format(stockCode))
+    fig = plt.figure(figsize=(18, 9))
+    plt.plot(date_predict, real_stock_price, color='black',
+             label='{} Stock Price'.format(stockCode))
+    plt.plot(date_predict, predicted_stock_price, color='green',
+             label='Predicted {} Stock Price'.format(stockCode))
     plt.title('{} Stock Price Prediction'.format(stockCode))
     plt.xlabel('Time')
     plt.ylabel('{} Stock Price'.format(stockCode))
     plt.legend()
     plt.show()
-    # finishTime = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) 
+    # finishTime = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())
     plotly_fig = py.plot_mpl(fig, filename="my first plotly plot")
-    print(plotly_fig)
+    return plotly_fig
 
 
-def chartProcessing(stockCode):
-    print("Yay! I still got executed, even though my function has already returned!")
+def dbProcessing(stockCode):
     df = getStockInfo(stockCode)
     url = processing(df, stockCode)
     doc_ref = db.collection('stockPrediction').document(stockCode)
-    doc_ref.set({'url': url})
+    doc_ref.set({'url-lstm': url})
     msg = '{0} 的預測url已加到Firebase'.format(stockCode)
     print(msg)
 
 
-def predictStock(stockCode):
+def predictStock_lstm(stockCode):
     start_time = time.time()
     url = getUrlFromDB(stockCode)
-    t = threading.Thread(target=chartProcessing, args=[stockCode])
-    t.start()
+    # t = threading.Thread(target=dbProcessing, args=[stockCode])
+    # t.start()
     if url == "":
         return url
     elapsed_time = time.time() - start_time
     print('time: ', elapsed_time, 's')
+    print(url,' in lstm')
     return url
 
 
 if __name__ == '__main__':
     stockCode = '0700.HK'
-    df = getStockInfo(stockCode)
-    processing(df,stockCode)
+    predictStock_lstm(stockCode)
+    # df = getStockInfo(stockCode)
+    # url = processing(df, stockCode)

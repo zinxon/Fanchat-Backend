@@ -3,6 +3,7 @@
 from flask import Flask, request, jsonify, render_template, make_response
 from requests_html import HTMLSession
 from stockPrediction_linear import predictStock
+from stockPrediction_lstm import predictStock_lstm
 from subprocess import check_output
 import os
 import dialogflow
@@ -77,6 +78,8 @@ def processRequest(req):
     return res
 
 # 2. 比較股票價格 例：小米,中國平安,中國銀行邊個最平 [股票名稱],[股票名稱],[股票名稱]邊個[最平／最貴]
+
+
 def get_welcome(req):
     response = '''你好老友！我叫FanChat，我係一個財務資訊型既聊天機械人。
 我有以下功能：
@@ -146,20 +149,29 @@ def get_stock_prediction(req):
     stock = parameters['stock']
     predict_method = parameters['predict_methods']
     # ma_indes = [7,20,50]
-    res="testing in prediction"
     print(predict_method)
-    if(predict_method=='linearRegression'):
+    res = ""
+    if(predict_method == 'linearRegression'):
         url = predictStock(stock)
         print("Index: "+url)
         if url == "":
             res = '後台正在生成股票預測圖表，請等候\n現在為你生成: ({0}) 圖表\n請再次輸入“[股票名稱]預測“ 以獲得預測圖表'.format(
                 stock)
         else:
-            res = url + " \n(請點擊網址以開啟{}預測圖表）".format(stock)
+            res = url + " \n(請點擊網址以開啟{} Linear Regression預測圖表）".format(stock)
+    elif(predict_method == 'LSTM'):
+        print('Going to lstm')
+        url = predictStock_lstm(stock)
+        print(url)
+        if url == "":
+            res = "testing in prediction"
+        else:
+            res = url + " \n(請點擊網址以開啟{} LSTM預測圖表）".format(stock)
         # res = "<ul><a href='{0}'>{0}</a></ul>".format(url)
     # res = "https://plot.ly/~zinxon/24 \n(請點擊網址以開啟）"
     # print(res)
     return res
+
 
 def get_stock_information(req):
     parameters = req['queryResult']['parameters']
