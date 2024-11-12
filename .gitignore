@@ -34,6 +34,7 @@ env/
 
 # Firebase
 fanchat-firebase-adminsdk*.json
+fanchat-94475fbe6f41.json
 
 # API Keys
 .env
